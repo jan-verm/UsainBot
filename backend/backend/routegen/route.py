@@ -67,13 +67,15 @@ class Route:
                 temp = start
                 new_path = []
                 length_new_path = 0
-                add_path = True
-                
+                try_once = False
                 # we stop when we have a path between start or end, or if we exceed a certain MAX_LENGTH_PATH
-                while (temp != end or start==end):
+                if start == end:
+                    try_once = True
+                while (temp != end or try_once):
                     # init
                     neighbor = start
                     neighbor_visited = []
+                    try_once = False
     
                     # find a random neighbour that hasn't been visited yet. If no such neighbour, then find new random path, otherwise it gets stuck)
                     while (neighbor in new_path or neighbor == start)  and sorted(list(set(neighbor_visited))) != sorted(list(self.map.neighbors(temp))):
@@ -81,30 +83,32 @@ class Route:
                         neighbor_visited.append(neighbor)
 
                     # good path
-                    if neighbor not in new_path:
+                    if neighbor not in new_path and length_new_path < self.MAX_LENGTH_PATH:
                         new_path.append(neighbor)
                         temp = neighbor
                         length_new_path += 1
                     
-                    # not a neighbouring node was found
+                    # not a neighbouring node was found, do shortest_path
                     else:
-                        add_path = False
-                        break
+                        test = nx.shortest_path(self.map, new_path[len(new_path)-1], end)
+                        temp = end
+                        new_path = new_path + test
 
                 # you've tried to find a path
                 nr_of_attempts += 1
 
                 # add path to cycle
-                if add_path:
-                    new_path = path[0:path.index(start)] + new_path + path[path.index(new_path[len(new_path)-1])+1:]
+                new_path = path[0:path.index(start)] + new_path + path[path.index(new_path[len(new_path)-1])+1:]
                 
             # add new path to the pool
-            if nr_of_attempts < self.NR_OF_ATTEMPTS and add_path:
-                new_pool.add(new_path)
+            if nr_of_attempts < self.NR_OF_ATTEMPTS:
+                new_pool.append(new_path)
+
                 
         
         # we have a new pool
         self.pool = new_pool
+        print len([list(x) for x in set(tuple(x) for x in self.pool)])
             
     """
         Crossover function
