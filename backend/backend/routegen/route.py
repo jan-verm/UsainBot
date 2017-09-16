@@ -28,7 +28,7 @@ class Route:
         if (startnode in self.map.nodes()):
             # set up an initial pool of POOL_SIZE
             for i in xrange(0, self.POOL_SIZE):
-                self.pool.append([startnode, self.get_random_neighbor(startnode, list(self.map.nodes())), startnode])
+                self.pool.append([startnode, random.choice(list(self.map.neighbors(startnode))), startnode])
         else:
             raise Exception('Startnode is not in the set of nodes')
 
@@ -90,7 +90,7 @@ class Route:
                     
                     # not a neighbouring node was found, do shortest_path
                     else:
-                        test = nx.shortest_path(self.map, new_path[len(new_path)-1], end)
+                        test = nx.astar_path(self.map, new_path[len(new_path)-1], end)
                         temp = end
                         new_path = new_path + test
 
@@ -98,7 +98,9 @@ class Route:
                 nr_of_attempts += 1
 
                 # add path to cycle
-                new_path = path[0:path.index(start)] + new_path + path[path.index(new_path[len(new_path)-1])+1:]
+                new_path = path[0:path.index(start)-1] + new_path + path[path.index(end)+1:]
+
+
                 
             # add new path to the pool
             if nr_of_attempts < self.NR_OF_ATTEMPTS:
@@ -108,7 +110,8 @@ class Route:
         
         # we have a new pool
         self.pool = new_pool
-        print len([list(x) for x in set(tuple(x) for x in self.pool)])
+        # print len([list(x) for x in set(tuple(x) for x in self.pool)])
+
             
     """
         Crossover function
