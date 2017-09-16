@@ -29,8 +29,7 @@ class Route:
             # set up an initial pool of POOL_SIZE
             for i in xrange(0, self.POOL_SIZE):
                 self.pool.append([startnode, startnode])
-
-        else
+        else:
             raise Exception('Startnode is not in the set of nodes')
 
 
@@ -47,7 +46,9 @@ class Route:
             new_path = path
             nr_of_attempts = 0
 
-            while new_path == path and nr_of_attempts < self.NR_OF_ATTEMPTS and not all_nodes_unique(new_path):
+            retry_not_unique = False
+
+            while (new_path == path and nr_of_attempts < self.NR_OF_ATTEMPTS) or retry_not_unique:
                 # init
                 start = random.choice(path)
                 start_index = path.index(start)
@@ -61,7 +62,7 @@ class Route:
                 temp = start
                 new_path = [start]
                 length_path = 0
-
+                
                 # we stop when we have a path between start or end, or if we exceed a certain MAX_LENGTH_PATH
                 while temp != end and length_path < self.MAX_LENGTH_PATH:
                     temp = random.choice(list(self.map.neighbors(temp)))
@@ -74,6 +75,9 @@ class Route:
                 # check that a node is not visited twice
                 if (all_nodes_unique(new_path)):
                     new_pool.append(new_path)
+                    retry_not_unique = False
+                else:
+                    retry_not_unique = True
             
             # we have a new pool
             self.pool = new_pool
