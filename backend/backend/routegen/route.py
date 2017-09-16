@@ -27,8 +27,13 @@ class Route:
     def setup_initial_pool(self, startnode):
         if (startnode in self.map.nodes()):
             # set up an initial pool of POOL_SIZE
-            for i in xrange(0, self.POOL_SIZE):
-                self.pool.append([startnode, random.choice(list(self.map.neighbors(startnode))), startnode])
+            self.pool = []
+            while self.pool == []:
+                pool = nx.cycle_basis(self.map.to_undirected(), startnode)
+            
+                for path in pool:
+                    if (startnode in path):
+                        self.pool.append(path)
         else:
             raise Exception('Startnode is not in the set of nodes')
 
@@ -47,6 +52,16 @@ class Route:
         return random.choice(start_neighbors)
 
     """
+        add some randomness
+    """
+    def add_random_cycles(self, startnode):
+        pool = []
+        pool = nx.cycle_basis(self.map.to_undirected(), startnode)
+        for path in pool:
+            if (startnode in path):
+                self.pool.append(path)
+
+    """
         Mutation function
     """
     def mutation(self):
@@ -59,11 +74,14 @@ class Route:
             new_path = path
             nr_of_attempts = 0
 
-
             while new_path == path and nr_of_attempts < self.NR_OF_ATTEMPTS:
                 # init
                 start = random.choice(path)
-                end = self.get_random_neighbor(start, path)
+                
+                # print cycle
+                # coords = osmgraph.tools.coordinates(self.map.to_undirected(), cycle[0])
+                # geojsonio.display(json.dumps({'type': 'LineString', 'coordinates': coords}))
+                end = random.choice(path)
                 temp = start
                 new_path = []
                 length_new_path = 0
@@ -112,6 +130,22 @@ class Route:
         self.pool = new_pool
         # print len([list(x) for x in set(tuple(x) for x in self.pool)])
 
+
+
+    """
+        Find a random cycle with node n from pool
+    """
+    def find_random_cycle_with_node(self, n):
+        cycles = []
+
+        # find all the cycles that contain the node
+        for path in self.pool:
+            if n in path:
+                cycles.append(path)
+
+        # return a random cycle
+        return random.choice(cycles)
+
             
     """
         Crossover function
@@ -132,7 +166,7 @@ class Route:
                     while random_node == cycle1[0]:
                         random_node = random.choice(cycle1)
 
-                    cycle2 = find_random_cycle_with_node(random_node)
+                    cycle2 = self.find_random_cycle_with_node(random_node)
 
                     # make combination of the two cycles
                     new_path = cycle1[0:cycle1.index(random_node)] + cycle2[cycle2.index(random_node):]
@@ -148,19 +182,6 @@ class Route:
         self.pool = new_pool
 
 
-    """
-        Find a random cycle with node n from pool
-    """
-    def find_random_cycle_with_node(self, n):
-        cycles = []
-
-        # find all the cycles that contain the node
-        for path in self.pool:
-            if n in path:
-                cycles.append(path)
-
-        # return a random cycle
-        return random.choice(cycles)
 
     """
         Assign fitness

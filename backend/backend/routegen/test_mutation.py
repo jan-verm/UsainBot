@@ -7,7 +7,7 @@ import itertools
 import geojsonio
 import json
 
-routeGen = route.Route(pool_size=10, nr_mutants=10, nr_of_attempts=1000, max_length_path=100)
+routeGen = route.Route(pool_size=10, nr_mutants=10, nr_of_attempts=100, max_length_path=100)
 routeGen.import_file('../../maps/waterloo_small.osm')
 print 'file imported'
 
@@ -17,9 +17,10 @@ routeGen.setup_initial_pool(start_node)
 print(routeGen.pool)
 
 routeGen.mutation()
-routeGen.mutation()
-routeGen.mutation()
-routeGen.mutation()
+# routeGen.mutation()
+# routeGen.mutation()
+# routeGen.mutation()
+
 
 #print path[0:path.index(start)]
 for route in routeGen.pool:
