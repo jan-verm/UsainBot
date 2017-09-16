@@ -15,11 +15,11 @@ print('initial start node: '+str(start_node))
 routeGen.setup_initial_pool(start_node)
 print(routeGen.pool)
 
-for i in range(0, 50):
+for i in range(0, 20):
     routeGen.mutation()
     routeGen.crossover()
     routeGen.add_random_cycles(start_node)
-
+    routeGen.cut_pool_size()
 
 for i in range(0,10):
     route = random.choice(routeGen.pool)

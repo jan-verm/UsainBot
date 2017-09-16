@@ -5,7 +5,8 @@ import random
 import itertools
 import geojsonio
 import json
-
+import math
+import bisect
 
 class Route:
 
@@ -189,40 +190,21 @@ class Route:
     def fitness(self, cycle):
         total_dist = 0
         for idx in xrange(1,len(cycle)):
-            total_dist += self.map[cycle[idx-1]][cycle[idx]]['length']
+            try:
+                total_dist += self.map[cycle[idx-1]][cycle[idx]]['length']
+            except KeyError:
+                pass
         return 1/math.pow(total_dist-self.PREF_DIST, 2)
         
 
     """
         Cut to original POOL_SIZE
     """
-    def cut_pool_size(self):        
-        # Helper function for choice() - see stackoverflow
-        def cdf(weights):
-            total = sum(weights)
-            result = []
-            cumsum = 0
-            for w in weights:
-                cumsum += w
-                result.append(cumsum / total)
-            return result
-        
-        # Helper function for deleting cycles with specific probabilities
-        def choice(population, weights):
-            assert len(population) == len(weights)
-            cdf_vals = cdf(weights)
-            x = random.random()
-            idx = bisect.bisect(cdf_vals, x)
-            return idx
-        
-        # Normalize fitness to sum up to one
-        def normalize(list):
-            return [l/sum(list) for l in list]
-        
+    def cut_pool_size(self):
         while len(self.pool) > self.POOL_SIZE:
             pool_fitness = normalize([self.fitness(c) for c in self.pool])
             del_idx = choice(self.pool, pool_fitness)
-            del self.pool
+            del self.pool[del_idx]
 
             
     """
@@ -246,6 +228,36 @@ def all_nodes_unique(x):
     seen = set()
     return not any(i in seen or seen.add(i) for i in x)
 
+
+"""
+    Helper function for choice() - see stackoverflow
+"""
+def cdf(weights):
+    total = sum(weights)
+    result = []
+    cumsum = 0
+    for w in weights:
+        cumsum += w
+        result.append(cumsum / total)
+    return result
+
+
+"""
+    Helper function for deleting cycles with specific probabilities
+"""
+def choice(population, weights):
+    assert len(population) == len(weights)
+    cdf_vals = cdf(weights)
+    x = random.random()
+    idx = bisect.bisect(cdf_vals, x)
+    return idx
+
+
+"""
+    Normalize fitness to sum up to one
+"""
+def normalize(list):
+    return [l/sum(list) for l in list]
 
 # # By default any way with a highway tag will be loaded
 # g = osmgraph.parse_file('boston_massachusetts.osm.bz2')  # or .osm or .pbf
