@@ -184,30 +184,58 @@ class Route:
 
 
     """
-        Assign fitness
+        fitness function
     """
-    def assign_fitness(self):
-        pass
-        # TODO
+    def fitness(self, cycle):
+        total_dist = 0
+        for idx in xrange(1,len(cycle)):
+            total_dist += self.map[cycle[idx-1]][cycle[idx]]['length']
+        return 1/math.pow(total_dist-self.PREF_DIST, 2)
+        
 
     """
         Cut to original POOL_SIZE
     """
-    def cut_pool_size(self):
-        pass
-        # TODO
+    def cut_pool_size(self):        
+        # Helper function for choice() - see stackoverflow
+        def cdf(weights):
+            total = sum(weights)
+            result = []
+            cumsum = 0
+            for w in weights:
+                cumsum += w
+                result.append(cumsum / total)
+            return result
+        
+        # Helper function for deleting cycles with specific probabilities
+        def choice(population, weights):
+            assert len(population) == len(weights)
+            cdf_vals = cdf(weights)
+            x = random.random()
+            idx = bisect.bisect(cdf_vals, x)
+            return idx
+        
+        # Normalize fitness to sum up to one
+        def normalize(list):
+            return [l/sum(list) for l in list]
+        
+        while len(self.pool) > self.POOL_SIZE:
+            pool_fitness = normalize([self.fitness(c) for c in self.pool])
+            del_idx = choice(self.pool, pool_fitness)
+            del self.pool
 
             
     """
         Init
     """
-    def __init__(self, pool_size, nr_mutants, nr_of_attempts, max_length_path):
+    def __init__(self, pool_size, nr_mutants, nr_of_attempts, max_length_path, pref_dist):
         self.POOL_SIZE = pool_size
         self.pool = []
 
         self.NR_MUTANTS = nr_mutants
         self.NR_OF_ATTEMPTS = nr_of_attempts
         self.MAX_LENGTH_PATH = max_length_path
+        self.PREF_DIST = pref_dist
         
 
 

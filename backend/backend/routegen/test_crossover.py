@@ -7,7 +7,7 @@ import itertools
 import geojsonio
 import json
 
-routeGen = route.Route(pool_size=5, nr_mutants=5, nr_of_attempts=100, max_length_path=100)
+routeGen = route.Route(pool_size=5, nr_mutants=5, nr_of_attempts=100, max_length_path=100, pref_dist=100)
 routeGen.import_file('../../maps/waterloo_small.osm')
 
 start_node = random.choice(list(routeGen.map.nodes()))
