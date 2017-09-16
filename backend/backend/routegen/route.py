@@ -72,7 +72,7 @@ class Route:
                 new_path = path[0:path.index(new_path[0])] + new_path + path[path.index(new_path[len(new_path)-1])+1:]
 
                 # check that a node is not visited twice
-                if (all_nodes_unique):
+                if (all_nodes_unique(new_path)):
                     new_pool.append(new_path)
             
             # we have a new pool
@@ -101,7 +101,7 @@ class Route:
                 new_path = cycle1[0:cycle1.index(random_node)] + cycle2[cycle2.index(random_node):]
 
                 # check that a node is not visited twice
-                if (all_nodes_unique):
+                if (all_nodes_unique(new_path)):
                     new_pool.append(new_path)
 
          # we have a new pool
