@@ -28,10 +28,23 @@ class Route:
         if (startnode in self.map.nodes()):
             # set up an initial pool of POOL_SIZE
             for i in xrange(0, self.POOL_SIZE):
-                self.pool.append([startnode, startnode])
+                self.pool.append([startnode, self.get_random_neighbor(startnode, list(self.map.nodes())), startnode])
         else:
             raise Exception('Startnode is not in the set of nodes')
 
+
+    """
+        Random neighbor
+    """
+    def get_random_neighbor(self, start, path):
+        start_index = path.index(start)
+        # find random neighbor of start as end node
+        if start_index == 0 or start_index == len(path) -1:
+            start_neighbors = [path[1], path[len(path) - 2]]
+        else:
+            start_neighbors = [path[start_index-1], path[start_index+1]]
+
+        return random.choice(start_neighbors)
 
     """
         Mutation function
@@ -50,16 +63,9 @@ class Route:
             while new_path == path and nr_of_attempts < self.NR_OF_ATTEMPTS:
                 # init
                 start = random.choice(path)
-                start_index = path.index(start)
-                # find random neighbor of start as end node
-                if start_index == 0 or start_index == len(path -1):
-                    start_neighbors = [path[1], path[len(path) - 2]]
-                else:
-                    start_neighbors = [path[start_index-1], path[start_index+1]]
-
-                end = random.choice(start_neighbors)
+                end = self.get_random_neighbor(start, path)
                 temp = start
-                new_path = [start]
+                new_path = []
                 length_new_path = 0
                 add_path = True
                 
@@ -68,15 +74,15 @@ class Route:
                     # init
                     neighbor = start
                     neighbor_visited = []
-
+    
                     # find a random neighbour that hasn't been visited yet. If no such neighbour, then find new random path, otherwise it gets stuck)
-                    while(neighbor in new_path and list(set(neighbor_visited)).sort() != self.map.neighbors(temp).sort()):
+                    while (neighbor in new_path or neighbor == start)  and sorted(list(set(neighbor_visited))) != sorted(list(self.map.neighbors(temp))):
                         neighbor = random.choice(list(self.map.neighbors(temp)))
                         neighbor_visited.append(neighbor)
 
                     # good path
-                    if neighbor not in new_path and length_new_path < self.MAX_LENGTH_NEW_PATH:
-                        new_path.add(neighbor)
+                    if neighbor not in new_path:
+                        new_path.append(neighbor)
                         temp = neighbor
                         length_new_path += 1
                     
@@ -88,10 +94,14 @@ class Route:
                 # you've tried to find a path
                 nr_of_attempts += 1
 
-                       
+                # add path to cycle
+                if add_path:
+                    new_path = path[0:path.index(start)] + new_path + path[path.index(new_path[len(new_path)-1])+1:]
+                
             # add new path to the pool
-            if nr_of_attempts < self.MAX_NUMBER_OF_ATTEMPTS and add_path:
+            if nr_of_attempts < self.NR_OF_ATTEMPTS and add_path:
                 new_pool.add(new_path)
+                
         
         # we have a new pool
         self.pool = new_pool
