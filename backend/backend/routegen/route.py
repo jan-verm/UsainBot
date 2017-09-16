@@ -36,7 +36,7 @@ class Route:
     """
         Mutation function
     """
-    def mutation(self, startnode):
+    def mutation(self):
         new_pool = self.pool # the new pool will be the old pool plus NR_MUTANTS newly generated paths
 
         # Generate NR_MUTANTS new path and add it to the pool
@@ -46,9 +46,9 @@ class Route:
             new_path = path
             nr_of_attempts = 0
 
-            retry_not_unique = False
+            retry_not_unique = True
 
-            while (new_path == path and nr_of_attempts < self.NR_OF_ATTEMPTS) or retry_not_unique:
+            while new_path == path and nr_of_attempts < self.NR_OF_ATTEMPTS and retry_not_unique:
                 # init
                 start = random.choice(path)
                 start_index = path.index(start)
@@ -64,13 +64,26 @@ class Route:
                 length_path = 0
                 
                 # we stop when we have a path between start or end, or if we exceed a certain MAX_LENGTH_PATH
-                while temp != end and length_path < self.MAX_LENGTH_PATH:
-                    temp = random.choice(list(self.map.neighbors(temp)))
-                    new_path.append(temp)
-                    length_path += 1
+                try_again = True
+                while (temp != end or start==end) and length_path < self.MAX_LENGTH_PATH and try_again:
+                    neighbors_checked = []
+                    n = temp
+                    while n in new_path and neighbors_checked.sort() != self.map(neighbors(temp)).sort():
+                        n = random.choice(list(self.map.neighbors(temp)))
+                        neighbors_checked.append(n)
+                    
+                    
+                    if neighbors_checked.sort() != self.map(neighbors(temp)).sort():
+                        temp=n
+                        new_path.append(n)
+                        length_path += 1
+                    else:
+                        try_again = False
+                    
+                new_path.append(end)
 
                 # replace path in cycle with new_path
-                new_path = path[0:path.index(new_path[0])] + new_path + path[path.index(new_path[len(new_path)-1])+1:]
+                new_path = path[0:path.index(new_path[0])] + new_path + path[path.index(new_path[len(new_path)-1])+2:]
 
                 # check that a node is not visited twice
                 if (all_nodes_unique(new_path)):
@@ -78,6 +91,8 @@ class Route:
                     retry_not_unique = False
                 else:
                     retry_not_unique = True
+                    
+                nr_of_attempts += 1
             
             # we have a new pool
             self.pool = new_pool
@@ -136,22 +151,15 @@ class Route:
         Assign fitness
     """
     def assign_fitness(self):
+        pass
         # TODO
 
     """
         Cut to original POOL_SIZE
     """
     def cut_pool_size(self):
+        pass
         # TODO
-
-    """
-        Check if all nodes in a list are unique (check visited nodes)
-    """
-    def all_nodes_unique(x):
-         seen = set()
-         return not any(i in seen or seen.add(i) for i in x)
-
-
 
             
     """
@@ -164,6 +172,15 @@ class Route:
         self.NR_MUTANTS = nr_mutants
         self.NR_OF_ATTEMPTS = nr_of_attempts
         self.MAX_LENGTH_PATH = max_length_path
+        
+
+
+"""
+    Check if all nodes in a list are unique (check visited nodes)
+"""
+def all_nodes_unique(x):
+    seen = set()
+    return not any(i in seen or seen.add(i) for i in x)
 
 
 # # By default any way with a highway tag will be loaded
