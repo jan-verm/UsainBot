@@ -7,14 +7,63 @@ import geojsonio
 import json
 
 
-def import_file(self, path):
-"""
-    import file with relative path 'path' and stores the map data in self.map
-"""
-    self.map = osmgraph.parse_file(path)
-    for n1, n2 in self.map.edges():
-        c1, c2 = osmgraph.tools.coordinates(self.map, (n1, n2))   
-        self.map[n1][n2]['length'] = geog.distance(c1, c2)
+class Route:
+
+    """
+        import file with relative path 'path' and stores the map data in self.map
+    """
+    def import_file(self, path):
+        self.map = osmgraph.parse_file(path)
+
+        # add distances
+        for n1, n2 in self.map.edges():
+            c1, c2 = osmgraph.tools.coordinates(self.map, (n1, n2))   
+            self.map[n1][n2]['length'] = geog.distance(c1, c2)
+
+
+    """
+        setup initial pool for generation process
+    """
+    def setup_initial_pool(self, startnode):
+        if (startnode in self.map.nodes()):
+            # set up an initial pool of POOL_SIZE
+            for i in xrange(0, self.POOL_SIZE):
+                self.pool.append([startnode,startnode])
+
+
+    """
+        Mutation function
+    """
+    def mutation(self, startnode):
+        new_pool = self.pool # the new pool will be the old pool plus NR_MUTANTS newly generated paths
+
+        # Generate NR_MUTANTS new path and add it to the pool
+        for i in xrange(0, self.NR_MUTANTS):
+            # select random path from pool
+            path = random.choice(self.pool)
+            new_path = path
+
+            # see which nodes have already been visited
+            visited = []
+            for i in path:
+                visited.append(i)
+
+            
+
+
+
+
+
+            
+    """
+        Init
+    """
+    def __init__(self, pool_size, nr_mutants):
+        self.POOL_SIZE = pool_size
+        self.pool = []
+
+        self.NR_MUTANTS = nr_mutants
+
 
 # # By default any way with a highway tag will be loaded
 # g = osmgraph.parse_file('boston_massachusetts.osm.bz2')  # or .osm or .pbf
