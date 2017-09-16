@@ -28,7 +28,7 @@ class Route:
         if (startnode in self.map.nodes()):
             # set up an initial pool of POOL_SIZE
             for i in xrange(0, self.POOL_SIZE):
-                self.pool.append([startnode,startnode])
+                self.pool.append([startnode, startnode])
 
         else
             raise Exception('Startnode is not in the set of nodes')
@@ -47,18 +47,43 @@ class Route:
             new_path = path
             nr_of_attempts = 0
 
-            # see which nodes have already been visited
-            visited = []
-            for i in path:
-                visited.append(i)
-            
-            while new_path == path && nr_of_attempts < self.NR_OF_ATTEMPTS:
+            while new_path == path and nr_of_attempts < self.NR_OF_ATTEMPTS:
                 # init
-                v = random.choice(path)
-                
+                start = random.choice(path)
+                start_index = path.index(start)
+                # find random neighbor of start as end node
+                if start_index == 0 or start_index == len(path -1):
+                    start_neighbors = [path[1], path[len(path) - 2]]
+                else
+                    start_neighbors = [path[start_index-1], path[start_index+1]]
+
+                end = random.choice(start_neighbors)
+                temp = start
+                new_path = [start]
+                length_path = 0
+
+                # we stop when we have a path between start or end, or if we exceed a certain MAX_LENGTH_PATH
+                while temp != end and length_path < self.MAX_LENGTH_PATH:
+                    temp = random.choice(list(self.map.neighbors(temp)))
+                    new_path.append(temp)
+                    length_path += 1
+
+                # replace path in cycle with new_path
+                new_path = path[0:path.index(new_path[0])] + new_path + path[path.index(new_path[len(new_path)-1])+1:]
+
+                # check that a node is not visited twice
+                if (all_nodes_unique):
+                    new_pool.add(new_path)
+
+            self.pool = new_pool
             
 
-
+    """
+        Check if all nodes in a list are unique (check visited nodes)
+    """
+    def all_nodes_unique(x):
+         seen = set()
+         return not any(i in seen or seen.add(i) for i in x)
 
 
 
@@ -66,12 +91,13 @@ class Route:
     """
         Init
     """
-    def __init__(self, pool_size, nr_mutants, nr_of_attempts):
+    def __init__(self, pool_size, nr_mutants, nr_of_attempts, max_length_path):
         self.POOL_SIZE = pool_size
         self.pool = []
 
         self.NR_MUTANTS = nr_mutants
         self.NR_OF_ATTEMPTS = nr_of_attempts
+        self.MAX_LENGTH_PATH = max_length_path
 
 
 # # By default any way with a highway tag will be loaded
