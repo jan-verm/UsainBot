@@ -88,6 +88,7 @@ class Route:
         # Generate NR_MUTANTS new path and add it to the pool
         for i in xrange(0, self.NR_MUTANTS):
             cycle1 = random.choice(self.pool)
+            new_path = cycle1
 
             # select random node from cycle1 that is not the startnode, unless path = [startnode,startnode]
             if cycle1 != [cycle1[0],cycle1[0]]:
