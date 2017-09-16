@@ -100,7 +100,6 @@ class Route:
         Crossover function
     """
     def crossover(self):
-        # TODO
         new_pool = self.pool # the new pool will be the old pool plus NR_MUTANTS newly generated paths
 
         # Generate NR_MUTANTS new path and add it to the pool
@@ -111,7 +110,7 @@ class Route:
 
             while retry_not_unique and nr_of_attempts < self.NR_OF_ATTEMPTS:
                 # select random node from cycle1 that is not the startnode, unless path = [startnode,startnode]
-                if cycle1 != [cycle1[0],cycle1[0]]:
+                if cycle1 != [cycle1[0],cycle1[0]]: # 1. What if it is????
                     random_node = cycle1[0] # startnode
                     while random_node == cycle1[0]:
                         random_node = random.choice(cycle1)
