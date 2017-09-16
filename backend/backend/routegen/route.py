@@ -73,10 +73,58 @@ class Route:
 
                 # check that a node is not visited twice
                 if (all_nodes_unique):
-                    new_pool.add(new_path)
-
+                    new_pool.append(new_path)
+            
+            # we have a new pool
             self.pool = new_pool
             
+    """
+        Crossover function
+    """
+    def crossover(self):
+        # TODO
+        new_pool = self.pool # the new pool will be the old pool plus NR_MUTANTS newly generated paths
+
+        # Generate NR_MUTANTS new path and add it to the pool
+        for i in xrange(0, self.NR_MUTANTS):
+            cycle1 = random.choice(self.pool)
+
+            # select random node from cycle1 that is not the startnode, unless path = [startnode,startnode]
+            if cycle1 != [cycle1[0],cycle1[0]]:
+                random_node = cycle1[0] # startnode
+                while random_node == cycle1[0]:
+                    random_node = random.choice(cycle1)
+
+                cycle2 = find_path_with_node(random_node)
+
+                # make combination of the two cycles
+                new_path = cycle1[0:cycle1.index(random_node)] + cycle2[cycle2.index(random_node):]
+
+                # check that a node is not visited twice
+                if (all_nodes_unique):
+                    new_pool.append(new_path)
+
+         # we have a new pool
+        self.pool = new_pool
+
+
+    """
+        Find a path with node n from pool
+    """
+    def find_path_with_node(n):
+        #TODO
+
+    """
+        Assign fitness
+    """
+    def assign_fitness(self):
+        # TODO
+
+    """
+        Cut to original POOL_SIZE
+    """
+    def cut_pool_size(self):
+        # TODO
 
     """
         Check if all nodes in a list are unique (check visited nodes)
