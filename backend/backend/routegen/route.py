@@ -54,7 +54,7 @@ class Route:
                 # find random neighbor of start as end node
                 if start_index == 0 or start_index == len(path -1):
                     start_neighbors = [path[1], path[len(path) - 2]]
-                else
+                else:
                     start_neighbors = [path[start_index-1], path[start_index+1]]
 
                 end = random.choice(start_neighbors)
