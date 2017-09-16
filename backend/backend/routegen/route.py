@@ -7,8 +7,14 @@ import geojsonio
 import json
 
 
-def import_file(path):
-    return osmgraph.parse_file(path)
+def import_file(self, path):
+"""
+    import file with relative path 'path' and stores the map data in self.map
+"""
+    self.map = osmgraph.parse_file(path)
+    for n1, n2 in self.map.edges():
+        c1, c2 = osmgraph.tools.coordinates(self.map, (n1, n2))   
+        self.map[n1][n2]['length'] = geog.distance(c1, c2)
 
 # # By default any way with a highway tag will be loaded
 # g = osmgraph.parse_file('boston_massachusetts.osm.bz2')  # or .osm or .pbf
