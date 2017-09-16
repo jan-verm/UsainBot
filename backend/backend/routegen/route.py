@@ -92,22 +92,27 @@ class Route:
         # Generate NR_MUTANTS new path and add it to the pool
         for i in xrange(0, self.NR_MUTANTS):
             cycle1 = random.choice(self.pool)
-            new_path = cycle1
+            retry_not_unique = True
+            nr_of_attempts = 0
 
-            # select random node from cycle1 that is not the startnode, unless path = [startnode,startnode]
-            if cycle1 != [cycle1[0],cycle1[0]]:
-                random_node = cycle1[0] # startnode
-                while random_node == cycle1[0]:
-                    random_node = random.choice(cycle1)
+            while retry_not_unique and nr_of_attempts < self.NR_OF_ATTEMPTS:
+                # select random node from cycle1 that is not the startnode, unless path = [startnode,startnode]
+                if cycle1 != [cycle1[0],cycle1[0]]:
+                    random_node = cycle1[0] # startnode
+                    while random_node == cycle1[0]:
+                        random_node = random.choice(cycle1)
 
-                cycle2 = find_path_with_node(random_node)
+                    cycle2 = find_cycle_with_node(random_node)
 
-                # make combination of the two cycles
-                new_path = cycle1[0:cycle1.index(random_node)] + cycle2[cycle2.index(random_node):]
+                    # make combination of the two cycles
+                    new_path = cycle1[0:cycle1.index(random_node)] + cycle2[cycle2.index(random_node):]
 
-                # check that a node is not visited twice
-                if (all_nodes_unique(new_path)):
-                    new_pool.append(new_path)
+                    # check that a node is not visited twice
+                    if (all_nodes_unique(new_path)):
+                        new_pool.append(new_path)
+                        retry_not_unique = False
+                    else:
+                        nr_of_attempts += 1
 
          # we have a new pool
         self.pool = new_pool
@@ -116,7 +121,7 @@ class Route:
     """
         Find a path with node n from pool
     """
-    def find_path_with_node(n):
+    def find_cycle_with_node(n):
         #TODO
 
     """
