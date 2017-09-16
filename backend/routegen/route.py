@@ -1,6 +1,6 @@
 import geog
 import networkx as nx
-from backend.libraries import osmgraph
+import osmgraph
 
 # By default any way with a highway tag will be loaded
 g = osmgraph.parse_file('boston_massachusetts.osm.bz2')  # or .osm or .pbf
