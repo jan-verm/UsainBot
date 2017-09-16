@@ -47,7 +47,7 @@ class Route:
             new_path = path
             nr_of_attempts = 0
 
-            while new_path == path and nr_of_attempts < self.NR_OF_ATTEMPTS:
+            while new_path == path and nr_of_attempts < self.NR_OF_ATTEMPTS and not all_nodes_unique(new_path):
                 # init
                 start = random.choice(path)
                 start_index = path.index(start)
