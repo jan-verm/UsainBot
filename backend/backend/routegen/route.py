@@ -30,6 +30,9 @@ class Route:
             for i in xrange(0, self.POOL_SIZE):
                 self.pool.append([startnode,startnode])
 
+        else
+            raise Exception('Startnode is not in the set of nodes')
+
 
     """
         Mutation function
@@ -42,12 +45,17 @@ class Route:
             # select random path from pool
             path = random.choice(self.pool)
             new_path = path
+            nr_of_attempts = 0
 
             # see which nodes have already been visited
             visited = []
             for i in path:
                 visited.append(i)
-
+            
+            while new_path == path && nr_of_attempts < self.NR_OF_ATTEMPTS:
+                # init
+                v = random.choice(path)
+                
             
 
 
@@ -58,11 +66,12 @@ class Route:
     """
         Init
     """
-    def __init__(self, pool_size, nr_mutants):
+    def __init__(self, pool_size, nr_mutants, nr_of_attempts):
         self.POOL_SIZE = pool_size
         self.pool = []
 
         self.NR_MUTANTS = nr_mutants
+        self.NR_OF_ATTEMPTS = nr_of_attempts
 
 
 # # By default any way with a highway tag will be loaded
