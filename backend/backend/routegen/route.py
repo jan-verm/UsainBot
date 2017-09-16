@@ -46,9 +46,8 @@ class Route:
             new_path = path
             nr_of_attempts = 0
 
-            retry_not_unique = True
 
-            while new_path == path and nr_of_attempts < self.NR_OF_ATTEMPTS and retry_not_unique:
+            while new_path == path and nr_of_attempts < self.NR_OF_ATTEMPTS:
                 # init
                 start = random.choice(path)
                 start_index = path.index(start)
@@ -61,41 +60,41 @@ class Route:
                 end = random.choice(start_neighbors)
                 temp = start
                 new_path = [start]
-                length_path = 0
+                length_new_path = 0
+                add_path = True
                 
                 # we stop when we have a path between start or end, or if we exceed a certain MAX_LENGTH_PATH
-                try_again = True
-                while (temp != end or start==end) and length_path < self.MAX_LENGTH_PATH and try_again:
-                    neighbors_checked = []
-                    n = temp
-                    while n in new_path and neighbors_checked.sort() != self.map(neighbors(temp)).sort():
-                        n = random.choice(list(self.map.neighbors(temp)))
-                        neighbors_checked.append(n)
+                while (temp != end or start==end):
+                    # init
+                    neighbor = start
+                    neighbor_visited = []
+
+                    # find a random neighbour that hasn't been visited yet. If no such neighbour, then find new random path, otherwise it gets stuck)
+                    while(neighbor in new_path and list(set(neighbor_visited)).sort() != self.map.neighbors(temp).sort()):
+                        neighbor = random.choice(list(self.map.neighbors(temp)))
+                        neighbor_visited.append(neighbor)
+
+                    # good path
+                    if neighbor not in new_path and length_new_path < self.MAX_LENGTH_NEW_PATH:
+                        new_path.add(neighbor)
+                        temp = neighbor
+                        length_new_path += 1
                     
-                    
-                    if neighbors_checked.sort() != self.map(neighbors(temp)).sort():
-                        temp=n
-                        new_path.append(n)
-                        length_path += 1
+                    # not a neighbouring node was found
                     else:
-                        try_again = False
-                    
-                new_path.append(end)
+                        add_path = False
+                        break
 
-                # replace path in cycle with new_path
-                new_path = path[0:path.index(new_path[0])] + new_path + path[path.index(new_path[len(new_path)-1])+2:]
-
-                # check that a node is not visited twice
-                if (all_nodes_unique(new_path)):
-                    new_pool.append(new_path)
-                    retry_not_unique = False
-                else:
-                    retry_not_unique = True
-                    
+                # you've tried to find a path
                 nr_of_attempts += 1
-            
-            # we have a new pool
-            self.pool = new_pool
+
+                       
+            # add new path to the pool
+            if nr_of_attempts < self.MAX_NUMBER_OF_ATTEMPTS and add_path:
+                new_pool.add(new_path)
+        
+        # we have a new pool
+        self.pool = new_pool
             
     """
         Crossover function
