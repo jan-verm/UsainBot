@@ -21,8 +21,9 @@ routeGen.mutation()
 routeGen.mutation()
 routeGen.mutation()
 
-# print path[0:path.index(start)]
-# for route in routeGen.pool:
-#     coords = osmgraph.tools.coordinates(routeGen.map, route)
-#     geojsonio.display(json.dumps({'type': 'LineString', 'coordinates': coords}))
-# # print(routeGen.pool)
+#print path[0:path.index(start)]
+for route in routeGen.pool:
+    coords = osmgraph.tools.coordinates(routeGen.map, route)
+    url = geojsonio.make_url(json.dumps({'type': 'LineString', 'coordinates': coords}))
+    print(url)
+# print(routeGen.pool)
