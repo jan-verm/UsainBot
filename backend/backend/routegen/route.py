@@ -102,7 +102,7 @@ class Route:
                     while random_node == cycle1[0]:
                         random_node = random.choice(cycle1)
 
-                    cycle2 = find_cycle_with_node(random_node)
+                    cycle2 = find_random_cycle_with_node(random_node)
 
                     # make combination of the two cycles
                     new_path = cycle1[0:cycle1.index(random_node)] + cycle2[cycle2.index(random_node):]
@@ -119,10 +119,18 @@ class Route:
 
 
     """
-        Find a path with node n from pool
+        Find a random cycle with node n from pool
     """
-    def find_cycle_with_node(n):
-        #TODO
+    def find_random_cycle_with_node(self, n):
+        cycles = []
+
+        # find all the cycles that contain the node
+        for path in self.pool:
+            if n in path:
+                cycles.append(path)
+
+        # return a random cycle
+        return random.choice(cycles)
 
     """
         Assign fitness
