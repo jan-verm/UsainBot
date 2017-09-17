@@ -27,6 +27,19 @@ class Route:
 
 
     """
+        Get the closest node to the given latitude longitude
+    """
+    def get_initial_node(self, location):
+        closest = -1
+        dist = sys.float_info.max
+        for n in self.map.nodes():
+            coord_n = osmgraph.tools.coordinates(self.map, n)
+            if geog.distance(coord_n, location) < dist:
+                dist = geog.distance(coord_n, location)
+                closest = n
+        return closest
+
+    """
         setup initial pool for generation process
     """
     def setup_initial_pool(self, startnode):
