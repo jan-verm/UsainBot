@@ -311,6 +311,44 @@ def choice(population, weights):
     idx = bisect.bisect(cdf_vals, x)
     return idx
 
+"""
+    Generate map urls
+"""
+def generate_map_urls(location, km, monumentbool, nr_of_mutations):
+    routeGen = route.Route(pool_size=10, nr_mutants=10, nr_of_attempts=100, max_length_path=100, pref_dist=km)
+    routeGen.import_file('../../maps/waterloo_small.osm')
+    print 'file imported'
+
+    # get the first node
+    start_node = self.get_initial_node(location)
+
+    print('initial start node: '+str(start_node))
+    routeGen.setup_initial_pool(start_node)
+
+    for i in range(0, nr_of_mutations):
+        routeGen.mutation()
+        routeGen.mutation()
+        # routeGen.add_random_cycles(start_node)
+        if i % 2 == 0:
+            routeGen.cut_pool_size2()
+
+    # final cut
+    routeGen.final_cut()
+    fitness = [0] * len(list(routeGen.pool))
+    # for i in range(0,len(list(routeGen.pool))):
+    #     route = routeGen.pool[i]
+
+    #     # find fitness
+    #     for node in list(route):
+    #         print node
+    #         fitness[i] += routeGen.nature_or_monuments(monumentbool, node)
+
+    ind = fitness.index(max(fitness))
+    coords = osmgraph.tools.coordinates(routeGen.map, routeGen.pool[ind])
+    url = geojsonio.make_url(json.dumps({'type': 'LineString', 'coordinates': coords}))
+
+    return url
+
 
 """
     Normalize fitness to sum up to one
