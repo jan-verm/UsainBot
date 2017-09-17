@@ -1,16 +1,18 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
 using System.Net.Http;
 using System.Threading;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
 namespace Bot_Application4.Dialogs
 {
     [Serializable]
     public class RootDialog : IDialog<object>
     {
+        string kilometers;
         public Task StartAsync(IDialogContext context)
         {
             context.Wait(HelloAsync);
@@ -54,6 +56,7 @@ namespace Bot_Application4.Dialogs
                 }
                 if (b.Length > 0)
                 {
+                    kilometers = b;
                     await context.PostAsync($"Whats the address you want to start from?");
                     context.Wait(this.AddressAsync);
                 }
@@ -77,7 +80,7 @@ namespace Bot_Application4.Dialogs
 
             System.Diagnostics.Debug.WriteLine(length);
 
-           // string s1 = coords_txt.Substring(14, length-1);
+            // string s1 = coords_txt.Substring(14, length-1);
 
             //System.Diagnostics.Debug.WriteLine(s1);
 
@@ -106,70 +109,22 @@ namespace Bot_Application4.Dialogs
             current = coords_txt[i];
             while(current != ']')
             {
-                lon += current;
                 current = coords_txt[i];
-                
+                lon += current;
                 i++;
             }
+            lon = lon.Substring(0, lon.Length - 1);
             await context.PostAsync(lat);
             await context.PostAsync(lon);
 
-
-
-
-            await context.PostAsync($"We'll generate a suited route starting from {addr}!");
+            string site = "http://10.21.211.82:8000/maps/" + lon + "/" + lat + "/" + kilometers + "/True/5/";
+            var ret = await client.GetAsync(site);
+            var uri = await ret.Content.ReadAsStringAsync();
+            var json = JObject.Parse(uri)["url"].ToString();
+            await context.PostAsync(json);
+            
+            await context.PostAsync($"We generated a suitable route starting from {addr}!");
         }
-
-
-
-
-
-
-
-        // calculate something for us to return
-        //  int length = (activity.Text ?? string.Empty).Length;
-        //Stuff added by Parth
-        //int kilos = (activity.Text ?? string.Empty).Kilos;
-        //Parth Stopped here
-        //var client = new HttpClient();
-
-        //client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "AlQARhB7rh_uKiu3fau3lFlxdGvQhGSsn - R_wD9XysMHF9ulHCYQIh_bY1ls_iRU"); 
-        // return our reply to the user
-        // string length =  
-        //Parth Started here
-
-        /*
-        if(activity.Text == "yes")
-        {
-            await context.Forward(new SecondDialog(), this.ResumeAfterSecondDialog, "hello", CancellationToken.None);
-        }
-
-        string kilometers = "";
-        string a = activity.Text;
-        string b = string.Empty;
-
-        for (int i = 0; i < a.Length; i++)
-        {
-            if (Char.IsDigit(a[i]))
-                b += a[i];
-        }
-        if (b.Length>0)
-        {
-            kilometers = b;
-            await context.PostAsync(text: $"So you want to run {kilometers} km?");
-        }
-
-        else if(activity.Text.Contains("Yes i do"))
-        {
-
-            await context.PostAsync($"You sent {activity.Text}. Want to go for a run?");
-
-        var resultt = await client.GetAsync("http://10.21.211.82/example_link.html");
-
-        var geojsonlink = await resultt.Content.ReadAsStringAsync();
-        await context.PostAsync(text: $"We did it here it is {geojsonlink} ");
-        context.Wait(MessageReceivedAsync);
-        }*/
 
     }
 }
