@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
 using System.Net.Http;
 using System.Threading;
+using System.Text.RegularExpressions;
 
 namespace Bot_Application4.Dialogs
 {
@@ -63,10 +64,58 @@ namespace Bot_Application4.Dialogs
         private async Task AddressAsync(IDialogContext context, IAwaitable<IMessageActivity> result)
         {
             var message = await result;
-
+            var client = new HttpClient();
             var addr = message.Text;
 
             context.Wait(HelloAsync);
+            var addr_enc = System.Uri.EscapeUriString(addr);
+            var maplocal = await client.GetAsync("http://dev.virtualearth.net/REST/v1/Locations?q="+addr_enc+"&key=AlQARhB7rh_uKiu3fau3lFlxdGvQhGSsn-R_wD9XysMHF9ulHCYQIh_bY1ls_iRU");
+            var links = await maplocal.Content.ReadAsStringAsync();
+
+            var coords_txt = Regex.Matches(links, @"coordinates.:\[[0-9.-]*,[0-9.-]*\]}")[0].ToString();
+            int length = coords_txt.Length;
+
+            System.Diagnostics.Debug.WriteLine(length);
+
+           // string s1 = coords_txt.Substring(14, length-1);
+
+            //System.Diagnostics.Debug.WriteLine(s1);
+
+            string lat = "";
+            string lon = "";
+            int i = 0;
+            char current;
+            
+           // await context.PostAsync(current);
+            do
+            {
+                if(i+1 >= length)
+                {
+                    break;
+                }
+                current = coords_txt[i];
+                if ((Char.IsDigit(current) || current=='.'))
+                {
+                    lat += current;
+                }
+                
+                i++;
+            } while (current != ',');
+
+            
+            current = coords_txt[i];
+            while(current != ']')
+            {
+                lon += current;
+                current = coords_txt[i];
+                
+                i++;
+            }
+            await context.PostAsync(lat);
+            await context.PostAsync(lon);
+
+
+
 
             await context.PostAsync($"We'll generate a suited route starting from {addr}!");
         }
