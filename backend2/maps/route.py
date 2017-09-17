@@ -394,6 +394,7 @@ def generate_map_urls(location, km, monumentbool, nr_of_mutations):
     return url
 
 
+
 """
     Normalize fitness to sum up to one
 """
