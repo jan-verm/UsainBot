@@ -7,6 +7,9 @@ import geojsonio
 import json
 import math
 import bisect
+import requests
+ 
+
 
 class Route:
 
@@ -68,6 +71,10 @@ class Route:
     def mutation(self):
         new_pool = self.pool # the new pool will be the old pool plus NR_MUTANTS newly generated paths
 
+        # see how long we are going to make the paths
+        real_max_length = random.choice(range(0,self.MAX_LENGTH_PATH))
+        print real_max_length
+
         # Generate NR_MUTANTS new path and add it to the pool
         for i in xrange(0, self.NR_MUTANTS):
             # select random path from pool
@@ -102,7 +109,7 @@ class Route:
                         neighbor_visited.append(neighbor)
 
                     # good path
-                    if neighbor not in new_path and length_new_path < self.MAX_LENGTH_PATH:
+                    if neighbor not in new_path and length_new_path < real_max_length:
                         new_path.append(neighbor)
                         temp = neighbor
                         length_new_path += 1
@@ -146,6 +153,12 @@ class Route:
 
         # return a random cycle
         return random.choice(cycles)
+
+    def nature_or_monuments(self, bool, node_id):
+        for i in range(0,10):
+            node_id = random.choice(list(self.map.nodes()))
+            r = requests.get('http://www.openstreetmap.org/api/0.6/node/'+ str(node_id) + '/full')
+            print str(r.text)
 
             
     """
@@ -194,7 +207,7 @@ class Route:
                 total_dist += self.map[cycle[idx-1]][cycle[idx]]['length']
             except KeyError:
                 pass
-        return 1/math.pow(total_dist-self.PREF_DIST, 2)
+        return 1/math.fabs(total_dist-self.PREF_DIST)
         
 
     """
@@ -202,9 +215,37 @@ class Route:
     """
     def cut_pool_size(self):
         while len(self.pool) > self.POOL_SIZE:
+            # print self.pool
+            print [self.fitness(c) for c in self.pool]
             pool_fitness = normalize([self.fitness(c) for c in self.pool])
+            # print pool_fitness
+            # print self.pool
             del_idx = choice(self.pool, pool_fitness)
             del self.pool[del_idx]
+
+    def total_distance(self, cycle):
+        total_dist = 0
+        for idx in xrange(1,len(cycle)):
+            try:
+                total_dist += self.map[cycle[idx-1]][cycle[idx]]['length']
+            except KeyError:
+                pass
+        return total_dist
+
+    def cut_pool_size2(self):
+        print 'cut'
+        l=[]
+        margin = 10
+        while len(l) < self.POOL_SIZE:
+            margin += 100
+            l = [x for x in self.pool if not ((self.PREF_DIST-margin) < self.total_distance(x) < (self.PREF_DIST+margin))]
+            print l
+
+
+    def final_cut(self):
+        margin = 0.1*self.PREF_DIST
+        self.pool = [x for x in self.pool if not ((self.PREF_DIST-margin) < self.total_distance(x) < (self.PREF_DIST+margin))]
+        print len(self.pool)
 
             
     """
