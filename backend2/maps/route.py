@@ -34,7 +34,7 @@ class Route:
         closest = -1
         dist = sys.float_info.max
         for n in self.map.nodes():
-            coord_n = osmgraph.tools.coordinates(self.map, n)
+            coord_n = osmgraph.tools.coordinates(self.map, [n])[0]
             if geog.distance(coord_n, location) < dist:
                 dist = geog.distance(coord_n, location)
                 closest = n
@@ -45,17 +45,24 @@ class Route:
     """
     def setup_initial_pool(self, startnode):
         if (startnode in self.map.nodes()):
-            # set up an initial pool of POOL_SIZE
+            # set up an initial pool of POOL_SIZE  
             self.pool = []
-            while self.pool == []:
+            test = 0
+            while self.pool == [] and test < 5:
+                test +=1
                 pool = nx.cycle_basis(self.map.to_undirected(), startnode)
-            
                 for path in pool:
                     if (startnode in path):
                         self.pool.append(path)
+
+            if test == 5 and self.pool == []:
+                neighbors = self.map.neighbors(startnode)
+                neighbor = random.choice(list(neighbors))
+                self.setup_initial_pool(neighbor)
         else:
             raise Exception('Startnode is not in the set of nodes')
 
+   
 
     """
         Random neighbor
@@ -88,7 +95,7 @@ class Route:
 
         # see how long we are going to make the paths
         real_max_length = random.choice(range(0,self.MAX_LENGTH_PATH))
-        print real_max_length
+        # print real_max_length
 
         # Generate NR_MUTANTS new path and add it to the pool
         for i in xrange(0, self.NR_MUTANTS):
@@ -248,7 +255,7 @@ class Route:
     def cut_pool_size(self):
         while len(self.pool) > self.POOL_SIZE:
             # print self.pool
-            print [self.fitness(c) for c in self.pool]
+            # print [self.fitness(c) for c in self.pool]
             pool_fitness = normalize([self.fitness(c) for c in self.pool])
             # print pool_fitness
             # print self.pool
@@ -271,13 +278,16 @@ class Route:
         while len(l) < self.POOL_SIZE:
             margin += 100
             l = [x for x in self.pool if not ((self.PREF_DIST-margin) < self.total_distance(x) < (self.PREF_DIST+margin))]
-            print l
+            # print l
 
 
-    def final_cut(self):
-        margin = 0.1*self.PREF_DIST
-        self.pool = [x for x in self.pool if not ((self.PREF_DIST-margin) < self.total_distance(x) < (self.PREF_DIST+margin))]
-        print len(self.pool)
+    def final_cut(self, pref_dist):
+        margin = 50
+        pool = []
+        while pool == []:
+            pool = [x for x in self.pool if ((pref_dist-margin) < self.total_distance(x) < (pref_dist+margin))]
+            margin += 100
+        self.pool = pool[:]
 
             
     """
@@ -329,7 +339,7 @@ def choice(population, weights):
     Generate map urls
 """
 def generate_map_urls(location, km, monumentbool, nr_of_mutations):
-    routeGen = Route(pool_size=10, nr_mutants=10, nr_of_attempts=100, max_length_path=100, pref_dist=km)
+    routeGen = Route(pool_size=10, nr_mutants=nr_of_mutations, nr_of_attempts=100, max_length_path=1000, pref_dist=km)
     routeGen.import_file('maps/maps_osm/waterloo_small.osm')
     print 'file imported'
 
@@ -339,25 +349,31 @@ def generate_map_urls(location, km, monumentbool, nr_of_mutations):
     print('initial start node: '+str(start_node))
     routeGen.setup_initial_pool(start_node)
 
-    for i in range(0, nr_of_mutations):
+    margin = 500
+
+    pool = []
+    while pool == []:
         routeGen.mutation()
         routeGen.mutation()
         # routeGen.add_random_cycles(start_node)
-        if i % 2 == 0:
-            routeGen.cut_pool_size2()
+        routeGen.cut_pool_size2()
+
+        pool = [routeGen.total_distance(x) for x in routeGen.pool if ((km-margin) < routeGen.total_distance(x) < (km+margin))]
+        print pool
+        
+        
 
     # final cut
-    routeGen.final_cut()
+    routeGen.final_cut(km)
     fitness = [0] * len(list(routeGen.pool))
     # for i in range(0,len(list(routeGen.pool))):
     #     route = routeGen.pool[i]
 
     #     # find fitness
     #     for node in list(route):
-    #         print node
     #         fitness[i] += routeGen.nature_or_monuments(monumentbool, node)
 
-    ind = fitness.index(max(fitness))
+    ind = random.choice(range(0,len(list(routeGen.pool))))
     coords = osmgraph.tools.coordinates(routeGen.map, routeGen.pool[ind])
     url = geojsonio.make_url(json.dumps({'type': 'LineString', 'coordinates': coords}))
 

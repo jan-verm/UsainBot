@@ -15,8 +15,9 @@ class MapList(APIView):
     get a map
     """
     def get(self, request, longtitude, lat, km, monumentbool, nr_of_mutations, format=None):
-        location = [longtitude, lat]
-        url_item = generate_map_urls(location, km, monumentbool, nr_of_mutations)
+        location = [float(longtitude), float(lat)]
+        url_item = generate_map_urls(location, int(km)*1000, bool(monumentbool), int(nr_of_mutations))
+        # print url_item
         map_item = Map(url = url_item)
         map_item.save()
         serializer = MapSerializer(map_item, many=False)

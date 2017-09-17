@@ -14,6 +14,7 @@ print 'file imported'
 
 
 start_node = random.choice(list(routeGen.map.nodes()))
+start_node = 2147170547
 
 print('initial start node: '+str(start_node))
 routeGen.setup_initial_pool(start_node)
@@ -38,8 +39,8 @@ fitness = [0] * len(list(routeGen.pool))
 #         fitness[i] += routeGen.nature_or_monuments(True,node)
 
 numb = max([10,len(list(routeGen.pool))])
-ind = fitness.index(max(fitness))
-print ind
-coords = osmgraph.tools.coordinates(routeGen.map, routeGen.pool[ind])
-geojsonio.display(json.dumps({'type': 'LineString', 'coordinates': coords}))
+
+for ind in range(0, len(list(routeGen.pool))):
+    coords = osmgraph.tools.coordinates(routeGen.map, routeGen.pool[ind])
+    geojsonio.display(json.dumps({'type': 'LineString', 'coordinates': coords}))
    

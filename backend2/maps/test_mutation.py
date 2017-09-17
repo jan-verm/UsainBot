@@ -14,15 +14,19 @@ print 'file imported'
 
 
 start_node = random.choice(list(routeGen.map.nodes()))
+start_node = 2147170547
 
 print('initial start node: '+str(start_node))
 routeGen.setup_initial_pool(start_node)
+print routeGen.pool
 # print(routeGen.pool)
 
 for i in range(0,20):
     routeGen.mutation()
+    routeGen.crossover()
     routeGen.mutation()
-    # routeGen.add_random_cycles(start_node)
+    routeGen.crossover()
+    routeGen.add_random_cycles(start_node)
     if i % 2 == 0:
         routeGen.cut_pool_size2()
 
