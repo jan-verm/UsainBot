@@ -9,6 +9,7 @@ import math
 import bisect
 import requests
 import sys
+import numpy as np
 from xml.etree import ElementTree as ET
  
 
@@ -366,14 +367,27 @@ def generate_map_urls(location, km, monumentbool, nr_of_mutations):
     # final cut
     routeGen.final_cut(km)
     fitness = [0] * len(list(routeGen.pool))
-    # for i in range(0,len(list(routeGen.pool))):
-    #     route = routeGen.pool[i]
+    if len(list(routeGen.pool)) > 0:
+        for i in range(0,len(list(routeGen.pool))):
+            route = routeGen.pool[i]
+            route = np.random.choice(route, 5)
 
-    #     # find fitness
-    #     for node in list(route):
-    #         fitness[i] += routeGen.nature_or_monuments(monumentbool, node)
+            # find fitness
+            for node in list(route):
+                fitness[i] += routeGen.nature_or_monuments(monumentbool, node)
 
-    ind = random.choice(range(0,len(list(routeGen.pool))))
+        if np.any(fitness): # if not all zero
+            print fitness
+            print 'not all zero'
+            ind = fitness.index(max(list(fitness)))
+        else:
+            print 'all zero'
+            ind = random.choice(range(0,len(list(routeGen.pool))))
+    else:
+        print 'only one'
+        ind = random.choice(range(0,len(list(routeGen.pool))))
+
+    print ind
     coords = osmgraph.tools.coordinates(routeGen.map, routeGen.pool[ind])
     url = geojsonio.make_url(json.dumps({'type': 'LineString', 'coordinates': coords}))
 
