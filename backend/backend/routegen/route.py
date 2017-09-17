@@ -8,6 +8,7 @@ import json
 import math
 import bisect
 import requests
+from xml.etree import ElementTree as ET
  
 
 
@@ -116,7 +117,12 @@ class Route:
                     
                     # not a neighbouring node was found, do shortest_path
                     else:
-                        test = nx.astar_path(self.map, new_path[len(new_path)-1], end)
+                        try:
+                            test = nx.astar_path(self.map, new_path[len(new_path)-1], end)
+                        except IndexError:
+                            test = []
+                        except nx.NetworkXNoPath:
+                            test = []
                         temp = end
                         new_path = new_path + test
 
@@ -154,12 +160,24 @@ class Route:
         # return a random cycle
         return random.choice(cycles)
 
-    def nature_or_monuments(self, bool, node_id):
-        for i in range(0,10):
-            node_id = random.choice(list(self.map.nodes()))
-            r = requests.get('http://www.openstreetmap.org/api/0.6/node/'+ str(node_id) + '/full')
-            print str(r.text)
+    def nature_or_monuments(self, boolMonument, node_id):
+        r = requests.get('http://www.openstreetmap.org/api/0.6/node/'+ str(node_id))
+        root = ET.fromstring(r.text)
+        for tag in root.findall('.//tag'):
+            k = tag.get('k')
+            v = tag.get('v')
 
+            if k == 'natural' and boolMonument == False:
+                # make this path more in weight
+                return 1 
+            elif (k == 'landmark' or k == 'historic') and boolMonument == True:
+                # make this path more in weight
+                return 1
+            else: 
+                # make less in weight
+                return 0
+
+        return 0
             
     """
         Crossover function
@@ -299,30 +317,3 @@ def choice(population, weights):
 """
 def normalize(list):
     return [l/sum(list) for l in list]
-
-# # By default any way with a highway tag will be loaded
-# g = osmgraph.parse_file('boston_massachusetts.osm.bz2')  # or .osm or .pbf
-# for n1, n2 in g.edges_iter():
-#     c1, c2 = osmgraph.tools.coordinates(g, (n1, n2))   
-#     g[n1][n2]['length'] = geog.distance(c1, c2)
-
-# start = random.choice(g.nodes())
-# end = random.choice(g.nodes())
-# path = nx.shortest_path(g, start, end, 'length')
-# coords = osmgraph.tools.coordinates(g, path)
-
-# # Find the sequence of roads to get from start to end
-# edge_names = [g[n1][n2].get('name') for n1, n2 in osmgraph.tools.pairwise(path)]
-# names = [k for k, v in itertools.groupby(edge_names)]
-# print(names)
-#     #  ['North Harvard Street',
-#     #   'Franklin Street',
-#     #   'Lincoln Street',
-#     #   None,
-#     #   'Cambridge Street',
-#     #   'Gordon Street',
-#     #   'Warren Street',
-#     #   'Commonwealth Avenue']
-
-# # Visualize the path using geojsonio.py
-# geojsonio.display(json.dumps({'type': 'LineString', 'coordinates': coords}))
